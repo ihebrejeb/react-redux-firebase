@@ -2,12 +2,13 @@ import React, { Component } from "react";
 import Notifications from "./Notifications";
 import ProjectList from "../projects/ProjectList";
 import { connect } from "react-redux";
-
-
-
-export class Dashboard extends Component {
+import { firestoreConnect } from "react-redux-firebase";
+import { compose } from "redux";
+import { Redirect } from "react-router-dom";
+class Dashboard extends Component {
   render() {
-    const { projects } = this.props
+    const { projects, auth } = this.props;
+    if (!auth.uid) return <Redirect to="/signin"></Redirect>;
     return (
       <div>
         <div className="dashboard container">
@@ -25,10 +26,14 @@ export class Dashboard extends Component {
   }
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = state => {
   return {
-    projects: state.project.projects
-  }
-}
+    projects: state.firestore.ordered.projects,
+    auth: state.firebase.auth
+  };
+};
 
-export default connect(mapStateToProps)(Dashboard);
+export default compose(
+  firestoreConnect(props => [{ collection: "projects" }]),
+  connect(mapStateToProps)
+)(Dashboard);
